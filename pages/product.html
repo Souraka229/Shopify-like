@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DigitalMarket - Produit</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="../index.html" class="nav-logo"><i class="fas fa-store"></i> DigitalMarket</a>
+            <div class="nav-menu">
+                <a href="../index.html" class="nav-link">Accueil</a>
+                <a href="shop.html" class="nav-link">Boutique</a>
+                <a href="dashboard.html" class="nav-link">Tableau de bord</a>
+                <a href="#" class="nav-link" id="loginBtn">Connexion</a>
+                <a href="#" class="nav-link" id="registerBtn">Inscription</a>
+                <a href="#" class="nav-link" id="logoutBtn" style="display:none;">Déconnexion</a>
+            </div>
+            <div class="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Product Section -->
+    <section class="product">
+        <div class="container">
+            <div class="product-content">
+                <div class="product-image">
+                    <img id="productImage" src="../images/placeholder.png" alt="Produit">
+                </div>
+                <div class="product-details">
+                    <h2 id="productName">Nom du produit</h2>
+                    <p id="productDescription">Description du produit.</p>
+                    <p class="price" id="productPrice">0 FCFA</p>
+                    <button class="btn btn-primary" id="buyButton">Acheter</button>
+                </div>
+            </div>
+            <div class="product-form" id="productFormSection" style="display: none;">
+                <h3 id="formTitle">Ajouter un produit</h3>
+                <form id="productForm">
+                    <div class="form-group">
+                        <label for="productNameInput">Nom</label>
+                        <input type="text" id="productNameInput" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="productDescriptionInput">Description</label>
+                        <textarea id="productDescriptionInput" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="productPriceInput">Prix (FCFA)</label>
+                        <input type="number" id="productPriceInput" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="productCategoryInput">Catégorie</label>
+                        <select id="productCategoryInput" required>
+                            <option value="ebook">E-book</option>
+                            <option value="course">Cours</option>
+                            <option value="template">Template</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="productImageInput">Image</label>
+                        <input type="file" id="productImageInput" accept="image/*">
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="submitProductButton">Ajouter</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Auth Modal -->
+    <div class="modal" id="authModal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">Connexion</h2>
+            <form id="authForm">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" required>
+                </div>
+                <div class="form-group" id="shopNameGroup" style="display: none;">
+                    <label for="shopName">Nom de votre boutique</label>
+                    <input type="text" id="shopName">
+                </div>
+                <button type="submit" class="btn btn-primary" id="authButton">Se connecter</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 DigitalMarket. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <script type="module" src="../firebase.js"></script>
+    <script type="module">
+        import { auth, db, doc, getDoc, setDoc, addDoc, collection } from '../firebase.js';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+        const isEdit = urlParams.get('edit') === 'true';
+
+        const productImage = document.getElementById('productImage');
+        const productName = document.getElementById('productName');
+        const productDescription = document.getElementById('productDescription');
+        const productPrice = document.getElementById('productPrice');
+        const productFormSection = document.getElementById('productFormSection');
+        const formTitle = document.getElementById('formTitle');
+        const submitProductButton = document.getElementById('submitProductButton');
+
+        onAuthStateChanged(auth, async (user) => {
+            if (isEdit && user) {
+                productFormSection.style.display = 'block';
+                formTitle.textContent = 'Modifier le produit';
+                submitProductButton.textContent = 'Modifier';
+                if (productId) {
+                    const docRef = doc(db, "products", productId);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        const product = docSnap.data();
+                        document.getElementById('productNameInput').value = product.name;
+                        document.getElementById('productDescriptionInput').value = product.description;
+                        document.getElementById('productPriceInput').value = product.price;
+                        document.getElementById('productCategoryInput').value = product.category;
+                    }
+                }
+            } else if (productId) {
+                productFormSection.style.display = 'none';
+                const docRef = doc(db, "products", productId);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const product = docSnap.data();
+                    productImage.src = product.image || '../images/placeholder.png';
+                    productName.textContent = product.name;
+                    productDescription.textContent = product.description;
+                    productPrice.textContent = `${product.price} FCFA`;
+                }
+            } else if (user) {
+                productFormSection.style.display = 'block';
+                formTitle.textContent = 'Ajouter un produit';
+                submitProductButton.textContent = 'Ajouter';
+            } else {
+                window.location.href = '../index.html';
+            }
+        });
+
+        document.getElementById('productForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('productNameInput').value;
+            const description = document.getElementById('productDescriptionInput').value;
+            const price = parseFloat(document.getElementById('productPriceInput').value);
+            const category = document.getElementById('productCategoryInput').value;
+            const image = document.getElementById('productImageInput').files[0];
+
+            try {
+                if (isEdit && productId) {
+                    await setDoc(doc(db, "products", productId), {
+                        name, description, price, category,
+                        sellerId: auth.currentUser.uid,
+                        image: image ? URL.createObjectURL(image) : null
+                    }, { merge: true });
+                    alert('Produit modifié !');
+                } else {
+                    await addDoc(collection(db, "products"), {
+                        name, description, price, category,
+                        sellerId: auth.currentUser.uid,
+                        image: image ? URL.createObjectURL(image) : null,
+                        createdAt: new Date()
+                    });
+                    alert('Produit ajouté !');
+                }
+                window.location.href = 'dashboard.html';
+            } catch (error) {
+                alert(`Erreur : ${error.message}`);
+            }
+        });
+
+        document.getElementById('buyButton').addEventListener('click', () => {
+            alert('Paiement à implémenter (ex. Flutterwave/CinetPay)');
+        });
+
+        // Menu mobile
+        const hamburger = document.querySelector('.hamburger');
+        const navMenu = document.querySelector('.nav-menu');
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            navMenu.classList.toggle('active');
+        });
+        document.querySelectorAll('.nav-link').forEach(link => link.addEventListener('click', () => {
+            hamburger.classList.remove('active');
+            navMenu.classList.remove('active');
+        }));
+    </script>
+</body>
+</html>
