@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DigitalMarket - Plateforme de produits digitaux</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="nav-logo"><i class="fas fa-store"></i> DigitalMarket</a>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link active">Accueil</a>
+                <a href="pages/shop.html" class="nav-link">Boutique</a>
+                <a href="pages/dashboard.html" class="nav-link">Tableau de bord</a>
+                <a href="#" class="nav-link" id="loginBtn">Connexion</a>
+                <a href="#" class="nav-link" id="registerBtn">Inscription</a>
+                <a href="#" class="nav-link" id="logoutBtn" style="display:none;">Déconnexion</a>
+            </div>
+            <div class="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Vendez et achetez des produits digitaux facilement</h1>
+                <p>Créez votre boutique, partagez vos créations et recevez vos paiements en toute sécurité.</p>
+                <div class="hero-buttons">
+                    <button class="btn btn-primary" onclick="window.register()">Démarrer maintenant</button>
+                    <button class="btn btn-secondary" onclick="location.href='pages/shop.html'">Explorer la boutique</button>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="images/hero-image.svg" alt="Produits digitaux">
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <h2>Pourquoi DigitalMarket ?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-credit-card"></i>
+                    <h3>Paiements sécurisés</h3>
+                    <p>Intégration avec des solutions locales et internationales.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-cloud-download-alt"></i>
+                    <h3>Livraison instantanée</h3>
+                    <p>Accès immédiat aux produits après achat.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Tableau de bord</h3>
+                    <p>Gérez vos produits et suivez vos ventes.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Auth Modal -->
+    <div class="modal" id="authModal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">Connexion</h2>
+            <form id="authForm">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" required>
+                </div>
+                <div class="form-group" id="shopNameGroup" style="display: none;">
+                    <label for="shopName">Nom de votre boutique</label>
+                    <input type="text" id="shopName">
+                </div>
+                <button type="submit" class="btn btn-primary" id="authButton">Se connecter</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 DigitalMarket. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <script type="module" src="firebase.js"></script>
+    <script>
+        // Gestion du menu mobile
+        const hamburger = document.querySelector('.hamburger');
+        const navMenu = document.querySelector('.nav-menu');
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            navMenu.classList.toggle('active');
+        });
+        document.querySelectorAll('.nav-link').forEach(link => link.addEventListener('click', () => {
+            hamburger.classList.remove('active');
+            navMenu.classList.remove('active');
+        }));
+
+        // Gestion de la modale
+        const authModal = document.getElementById('authModal');
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        const closeModal = document.querySelector('.close');
+        const modalTitle = document.getElementById('modalTitle');
+        const authButton = document.getElementById('authButton');
+        const shopNameGroup = document.getElementById('shopNameGroup');
+
+        loginBtn.addEventListener('click', () => openModal('login'));
+        registerBtn.addEventListener('click', () => openModal('register'));
+        closeModal.addEventListener('click', () => authModal.style.display = 'none');
+        window.addEventListener('click', (e) => {
+            if (e.target === authModal) authModal.style.display = 'none';
+        });
+
+        function openModal(type) {
+            authModal.style.display = 'flex';
+            if (type === 'login') {
+                modalTitle.textContent = 'Connexion';
+                authButton.textContent = 'Se connecter';
+                shopNameGroup.style.display = 'none';
+            } else {
+                modalTitle.textContent = 'Inscription';
+                authButton.textContent = 'S’inscrire';
+                shopNameGroup.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
