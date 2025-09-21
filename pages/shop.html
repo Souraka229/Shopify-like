@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DigitalMarket - Boutique</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="../index.html" class="nav-logo"><i class="fas fa-store"></i> DigitalMarket</a>
+            <div class="nav-menu">
+                <a href="../index.html" class="nav-link">Accueil</a>
+                <a href="shop.html" class="nav-link active">Boutique</a>
+                <a href="dashboard.html" class="nav-link">Tableau de bord</a>
+                <a href="#" class="nav-link" id="loginBtn">Connexion</a>
+                <a href="#" class="nav-link" id="registerBtn">Inscription</a>
+                <a href="#" class="nav-link" id="logoutBtn" style="display:none;">Déconnexion</a>
+            </div>
+            <div class="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Shop Section -->
+    <section class="shop">
+        <div class="container">
+            <h2>Nos produits digitaux</h2>
+            <div class="shop-filter">
+                <input type="text" id="searchInput" placeholder="Rechercher...">
+                <select id="categoryFilter">
+                    <option value="all">Toutes les catégories</option>
+                    <option value="ebook">E-books</option>
+                    <option value="course">Cours</option>
+                    <option value="template">Templates</option>
+                </select>
+            </div>
+            <div class="products-grid" id="productsGrid"></div>
+        </div>
+    </section>
+
+    <!-- Auth Modal -->
+    <div class="modal" id="authModal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">Connexion</h2>
+            <form id="authForm">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" required>
+                </div>
+                <div class="form-group" id="shopNameGroup" style="display: none;">
+                    <label for="shopName">Nom de votre boutique</label>
+                    <input type="text" id="shopName">
+                </div>
+                <button type="submit" class="btn btn-primary" id="authButton">Se connecter</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 DigitalMarket. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <script type="module" src="../firebase.js"></script>
+    <script type="module">
+        import { db, collection, getDocs } from '../firebase.js';
+
+        const productsGrid = document.getElementById('productsGrid');
+        const searchInput = document.getElementById('searchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
+
+        async function loadProducts() {
+            productsGrid.innerHTML = '';
+            const querySnapshot = await getDocs(collection(db, "products"));
+            querySnapshot.forEach((doc) => {
+                const product = doc.data();
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <img src="${product.image || '../images/placeholder.png'}" alt="${product.name}">
+                    <h3>${product.name}</h3>
+                    <p>${product.description.slice(0, 100)}...</p>
+                    <p class="price">${product.price} FCFA</p>
+                    <a href="product.html?id=${doc.id}" class="btn btn-primary">Voir</a>
+                `;
+                productsGrid.appendChild(card);
+            });
+        }
+
+        searchInput.addEventListener('input', filterProducts);
+        categoryFilter.addEventListener('change', filterProducts);
+
+        async function filterProducts() {
+            const search = searchInput.value.toLowerCase();
+            const category = categoryFilter.value;
+            productsGrid.innerHTML = '';
+            const querySnapshot = await getDocs(collection(db, "products"));
+            querySnapshot.forEach((doc) => {
+                const product = doc.data();
+                const matchesSearch = product.name.toLowerCase().includes(search) || product.description.toLowerCase().includes(search);
+                const matchesCategory = category === 'all' || product.category === category;
+                if (matchesSearch && matchesCategory) {
+                    const card = document.createElement('div');
+                    card.className = 'product-card';
+                    card.innerHTML = `
+                        <img src="${product.image || '../images/placeholder.png'}" alt="${product.name}">
+                        <h3>${product.name}</h3>
+                        <p>${product.description.slice(0, 100)}...</p>
+                        <p class="price">${product.price} FCFA</p>
+                        <a href="product.html?id=${doc.id}" class="btn btn-primary">Voir</a>
+                    `;
+                    productsGrid.appendChild(card);
+                }
+            });
+        }
+
+        loadProducts();
+
+        // Menu mobile
+        const hamburger = document.querySelector('.hamburger');
+        const navMenu = document.querySelector('.nav-menu');
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            navMenu.classList.toggle('active');
+        });
+        document.querySelectorAll('.nav-link').forEach(link => link.addEventListener('click', () => {
+            hamburger.classList.remove('active');
+            navMenu.classList.remove('active');
+        }));
+    </script>
+</body>
+</html>
