@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DigitalMarket - Tableau de bord</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="../index.html" class="nav-logo"><i class="fas fa-store"></i> DigitalMarket</a>
+            <div class="nav-menu">
+                <a href="../index.html" class="nav-link">Accueil</a>
+                <a href="shop.html" class="nav-link">Boutique</a>
+                <a href="dashboard.html" class="nav-link active">Tableau de bord</a>
+                <a href="#" class="nav-link" id="loginBtn">Connexion</a>
+                <a href="#" class="nav-link" id="registerBtn">Inscription</a>
+                <a href="#" class="nav-link" id="logoutBtn" style="display:none;">Déconnexion</a>
+            </div>
+            <div class="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Section -->
+    <section class="dashboard">
+        <div class="container">
+            <h2>Tableau de bord</h2>
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <h3>Ventes</h3>
+                    <p id="totalSales">0 FCFA</p>
+                </div>
+                <div class="dashboard-card">
+                    <h3>Produits</h3>
+                    <p id="activeProducts">0</p>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="location.href='product.html'">Ajouter un produit</button>
+            <h3>Vos produits</h3>
+            <div class="products-grid" id="sellerProducts"></div>
+        </div>
+    </section>
+
+    <!-- Auth Modal -->
+    <div class="modal" id="authModal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">Connexion</h2>
+            <form id="authForm">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" required>
+                </div>
+                <div class="form-group" id="shopNameGroup" style="display: none;">
+                    <label for="shopName">Nom de votre boutique</label>
+                    <input type="text" id="shopName">
+                </div>
+                <button type="submit" class="btn btn-primary" id="authButton">Se connecter</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 DigitalMarket. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <script type="module" src="../firebase.js"></script>
+    <script type="module">
+        import { auth, db, query, where, getDocs, collection } from '../firebase.js';
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = '../index.html';
+                return;
+            }
+
+            const q = query(collection(db, "products"), where("sellerId", "==", user.uid));
+            const querySnapshot = await getDocs(q);
+            const sellerProducts = document.getElementById('sellerProducts');
+            sellerProducts.innerHTML = '';
+            querySnapshot.forEach((doc) => {
+                const product = doc.data();
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <img src="${product.image || '../images/placeholder.png'}" alt="${product.name}">
+                    <h3>${product.name}</h3>
+                    <p>${product.description.slice(0, 100)}...</p>
+                    <p class="price">${product.price} FCFA</p>
+                    <a href="product.html?id=${doc.id}&edit=true" class="btn btn-primary">Modifier</a>
+                `;
+                sellerProducts.appendChild(card);
+            });
+            document.getElementById('activeProducts').textContent = querySnapshot.size;
+            // Les ventes nécessitent une collection "sales" (non implémentée ici)
+        });
+
+        // Menu mobile
+        const hamburger = document.querySelector('.hamburger');
+        const navMenu = document.querySelector('.nav-menu');
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            navMenu.classList.toggle('active');
+        });
+        document.querySelectorAll('.nav-link').forEach(link => link.addEventListener('click', () => {
+            hamburger.classList.remove('active');
+            navMenu.classList.remove('active');
+        }));
+    </script>
+</body>
+</html>
